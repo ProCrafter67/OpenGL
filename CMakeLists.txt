@@ -33,6 +33,9 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
     endif()
 endif()
 
+file(COPY ${CMAKE_SOURCE_DIR}/src/shaders
+     DESTINATION ${CMAKE_BINARY_DIR})
+
 add_subdirectory(dependencies/glfw)
 add_subdirectory(dependencies/glad)
 add_subdirectory(dependencies/stb)
