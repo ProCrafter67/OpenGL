@@ -33,8 +33,8 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
     endif()
 endif()
 
-file(COPY ${CMAKE_SOURCE_DIR}/src/shaders
-     DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY ${CMAKE_SOURCE_DIR}/assets
+    DESTINATION ${CMAKE_BINARY_DIR}/Debug)
 
 add_subdirectory(dependencies/glfw)
 add_subdirectory(dependencies/glad)
