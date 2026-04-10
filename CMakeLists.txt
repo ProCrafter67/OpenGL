@@ -34,7 +34,7 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 file(COPY ${CMAKE_SOURCE_DIR}/assets
-    DESTINATION ${CMAKE_BINARY_DIR}/Debug)
+    DESTINATION ${CMAKE_BINARY_DIR})
 
 add_subdirectory(dependencies/glfw)
 add_subdirectory(dependencies/glad)
