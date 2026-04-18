@@ -14,6 +14,7 @@
 
 #include "shader_m.h"
 #include "camera.h"
+#include "mesh.h"
 
 #include <iostream>
 
@@ -103,7 +104,7 @@ int main()
     glCullFace(GL_BACK);
     glEnable(GL_BLEND);                                // Enable blending for transparency
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // Set blending function for standard alpha blending
-    // glEnable(GL_FRAMEBUFFER_SRGB);                  // Gamma Correction
+    glEnable(GL_FRAMEBUFFER_SRGB);                     // Gamma Correction
 
     // build and compile our shader zprogram
     // ------------------------------------
@@ -170,6 +171,7 @@ int main()
         -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
         -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
         0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f};
+
     // first, configure the cube's VAO (and VBO)
     unsigned int VBO, cubeVAO;
     glGenVertexArrays(1, &cubeVAO);
@@ -205,6 +207,7 @@ int main()
     glGenTextures(1, &texture);
 
     int width, height, nrChannels;
+    stbi_set_flip_vertically_on_load(true); // Flip the image vertically during loading
     unsigned char *data = stbi_load("./assets/textures/bricks.png", &width, &height, &nrChannels, 0);
 
     if (data)

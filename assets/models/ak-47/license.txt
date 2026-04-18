@@ -1,0 +1,11 @@
+Model Information:
+* title:	AK-47 Kalashnikov
+* source:	https://sketchfab.com/3d-models/ak-47-kalashnikov-5d08c2e227d04a0f87cd5a005e6b56d1
+* author:	Jeyhun1985 (https://sketchfab.com/Jeyhun1985)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "AK-47 Kalashnikov" (https://sketchfab.com/3d-models/ak-47-kalashnikov-5d08c2e227d04a0f87cd5a005e6b56d1) by Jeyhun1985 (https://sketchfab.com/Jeyhun1985) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
