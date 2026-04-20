@@ -7,3 +7,6 @@
 [submodule "dependencies/assimp"]
 	path = dependencies/assimp
 	url = https://github.com/assimp/assimp
+[submodule "ImGuiFileDialog"]
+	path = dependencies/ImGuiFileDialog
+	url = https://github.com/aiekick/ImGuiFileDialog
