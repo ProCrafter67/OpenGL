@@ -41,12 +41,15 @@ add_subdirectory(dependencies/glad)
 add_subdirectory(dependencies/stb)
 add_subdirectory(dependencies/assimp)
 add_subdirectory(dependencies/imgui)
+add_subdirectory(dependencies/ImGuiFileDialog)
 
 find_package(OpenGL REQUIRED)
 
+target_include_directories(ImGuiFileDialog PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/imgui")
+
 add_executable(${PROJECT_NAME} ${SRCS})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE imgui glfw stb glad OpenGL::GL assimp)
+target_link_libraries(${PROJECT_NAME} PRIVATE imgui glfw stb glad OpenGL::GL assimp ImGuiFileDialog)
 
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glm")

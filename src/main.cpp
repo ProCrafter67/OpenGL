@@ -8,13 +8,13 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <ImGuiFileDialog.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
 #include "shader_m.h"
 #include "camera.h"
-#include "mesh.h"
 
 #include <iostream>
 
@@ -44,6 +44,10 @@ float lastFrame = 0.0f;
 
 // lighting
 glm::vec3 lightPos(1.2f, 2.0f, 2.0f);
+
+bool gamma_correct = false;
+bool cull_back_faces = true;
+bool texture_transparent = false;
 
 int main()
 {
@@ -100,11 +104,22 @@ int main()
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glEnable(GL_BLEND);                                // Enable blending for transparency
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // Set blending function for standard alpha blending
-    glEnable(GL_FRAMEBUFFER_SRGB);                     // Gamma Correction
+    if (cull_back_faces)
+    {
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+    }
+
+    if (texture_transparent)
+    {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+
+    if (gamma_correct)
+    {
+        glEnable(GL_FRAMEBUFFER_SRGB);
+    }
 
     // build and compile our shader zprogram
     // ------------------------------------
@@ -287,6 +302,92 @@ int main()
         ImGui::SliderFloat("Y", &lightPos.y, -5.0f, 5.0f);
         ImGui::SliderFloat("Z", &lightPos.z, -5.0f, 5.0f);
 
+        ImGui::Separator();
+
+        ImGui::Text("Gamma Correction:");
+        ImGui::Checkbox("Enable Gamma Correction", &gamma_correct);
+
+        if (gamma_correct)
+        {
+            glEnable(GL_FRAMEBUFFER_SRGB);
+        }
+        else
+        {
+            glDisable(GL_FRAMEBUFFER_SRGB);
+        }
+
+        ImGui::Text("Back-face Culling:");
+        ImGui::Checkbox("Enable Back-face Culling", &cull_back_faces);
+
+        if (cull_back_faces)
+        {
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_BACK);
+        }
+        else
+        {
+            glDisable(GL_CULL_FACE);
+        }
+
+        ImGui::Text("Texture Transparency:");
+        ImGui::Checkbox("Enable Texture Transparency", &texture_transparent);
+
+        if (texture_transparent)
+        {
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
+        else
+        {
+            glDisable(GL_BLEND);
+        }
+
+        ImGui::Separator();
+
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+        if (ImGui::Button("Load Texture"))
+        {
+            IGFD::FileDialogConfig config;
+            config.path = ".";
+            ImGuiFileDialog::Instance()->OpenDialog("ChooseFileKey", "Choose File", ".png,.jpg,.jpeg", config);
+        }
+
+        if (ImGuiFileDialog::Instance()->Display("ChooseFileKey"))
+        {
+            if (ImGuiFileDialog::Instance()->IsOk())
+            {
+                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+                // std::cout << filePathName << std::endl;
+                unsigned char *data = stbi_load(filePathName.c_str(), &width, &height, &nrChannels, 0);
+                if (data)
+                {
+                    GLenum format;
+                    if (nrChannels == 1)
+                        format = GL_RED;
+                    else if (nrChannels == 3)
+                        format = GL_RGB;
+                    else if (nrChannels == 4)
+                        format = GL_RGBA;
+
+                    glBindTexture(GL_TEXTURE_2D, texture);
+                    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+                    glGenerateMipmap(GL_TEXTURE_2D);
+
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                }
+                else
+                {
+                    std::cerr << "Failed to load texture." << std::endl;
+                }
+                stbi_image_free(data);
+            }
+            ImGuiFileDialog::Instance()->Close();
+        }
+
         ImGui::End();
         ImGui::Render();
 
@@ -337,8 +438,8 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glCullFace(GL_BACK);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-#endif
 
+#endif
         // Set the viewport to the size of the framebuffer
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
