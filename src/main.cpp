@@ -13,8 +13,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
-#include "shader_m.h"
-#include "camera.h"
+#include "core/shader/shader.h"
+#include "core/util/camera.h"
+#include "core/util/window.h"
 
 #include <iostream>
 
@@ -51,42 +52,15 @@ bool texture_transparent = false;
 
 int main()
 {
-    // glfw: initialize and configure
-    // ------------------------------
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    // Window Initialization
+    Window window = Window();
 
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
+    window.SetFramebufferSizeCallback(framebuffer_size_callback);
+    window.SetMouseButtonCallback(mouse_button_callback);
+    window.SetCursorPosCallback(mouse_callback);
+    window.SetScrollCallback(scroll_callback);
 
-    // glfw window creation
-    // --------------------
-    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
-    if (window == NULL)
-    {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
-    glfwSetScrollCallback(window, scroll_callback);
-
-    // keep mouse visible and unlocked unless RMB is held
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
-    // glad: load all OpenGL function pointers
-    // ---------------------------------------
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        return -1;
-    }
+    window.SetVsync(false);
 
     // ImGui setup
     IMGUI_CHECKVERSION();
@@ -98,7 +72,7 @@ int main()
     ImGui::StyleColorsDark();
 
     // Setup Platform/Renderer bindings
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplGlfw_InitForOpenGL(window.GetWindow(), true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
 
     // configure global opengl state
@@ -129,8 +103,7 @@ int main()
     Shader depthShader("./assets/shaders/shadow_depth.vs", "./assets/shaders/shadow_depth.fs");
 #endif
 
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
+    // Vertex Data
     float vertices[] = {
         // positions          // normals           // texture coords
         // front face
@@ -286,7 +259,7 @@ int main()
 
     // render loop
     // -----------
-    while (!glfwWindowShouldClose(window))
+    while (window.IsOpen())
     {
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -399,7 +372,7 @@ int main()
 
         // input
         // -----
-        processInput(window);
+        processInput(window.GetWindow());
 
 #ifdef ENABLE_SHADOWS
         // 1. render depth of scene to texture (from light's perspective)
@@ -442,7 +415,7 @@ int main()
 #endif
         // Set the viewport to the size of the framebuffer
         int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
+        glfwGetFramebufferSize(window.GetWindow(), &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
 
         // Clear the color and depth buffers once per frame
@@ -526,8 +499,7 @@ int main()
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        window.Refresh();
     }
 
     // optional: de-allocate all resources once they've outlived their purpose:
@@ -544,9 +516,7 @@ int main()
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-    // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
-    glfwTerminate();
+    // glfwTerminate();
     return 0;
 }
 
