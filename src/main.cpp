@@ -1,8 +1,3 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <imgui.h>
@@ -53,7 +48,7 @@ bool texture_transparent = false;
 int main()
 {
     // Window Initialization
-    Window window = Window();
+    Window window = Window(SCR_WIDTH, SCR_HEIGHT);
 
     window.SetFramebufferSizeCallback(framebuffer_size_callback);
     window.SetMouseButtonCallback(mouse_button_callback);
@@ -62,16 +57,13 @@ int main()
 
     window.SetVsync(false);
 
-    // ImGui setup
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     (void)io;
 
-    // Setup Dear ImGui style
     ImGui::StyleColorsDark();
 
-    // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForOpenGL(window.GetWindow(), true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
 
@@ -331,7 +323,6 @@ int main()
             if (ImGuiFileDialog::Instance()->IsOk())
             {
                 std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-                // std::cout << filePathName << std::endl;
                 unsigned char *data = stbi_load(filePathName.c_str(), &width, &height, &nrChannels, 0);
                 if (data)
                 {
@@ -512,11 +503,6 @@ int main()
     glDeleteTextures(1, &depthMap);
 #endif
 
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-
-    // glfwTerminate();
     return 0;
 }
 
