@@ -34,7 +34,7 @@ public:
         ImGui::StyleColorsDark();
 
         ImGui_ImplGlfw_InitForOpenGL(window.GetWindow(), true);
-        ImGui_ImplOpenGL3_Init("#version 330 core");
+        ImGui_ImplOpenGL3_Init("#version 450 core");
 
         glEnable(GL_DEPTH_TEST);
         if (cull_back_faces)
