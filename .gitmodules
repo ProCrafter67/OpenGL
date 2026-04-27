@@ -4,9 +4,6 @@
 [submodule "dependencies/glm"]
 	path = dependencies/glm
 	url = https://github.com/g-truc/glm
-[submodule "dependencies/assimp"]
-	path = dependencies/assimp
-	url = https://github.com/assimp/assimp
 [submodule "ImGuiFileDialog"]
 	path = dependencies/ImGuiFileDialog
 	url = https://github.com/aiekick/ImGuiFileDialog
