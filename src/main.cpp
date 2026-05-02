@@ -4,6 +4,7 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <ImGuiFileDialog.h>
+#include <vector>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
@@ -13,6 +14,13 @@
 #include "core/util/window.h"
 
 #define ENABLE_SHADOWS
+
+class Vertex {
+public:
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::vec2 TexCoord;
+};
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
@@ -41,7 +49,7 @@ glm::vec3 lightPos(1.2f, 2.0f, 2.0f);
 
 bool gamma_correct = false;
 bool cull_back_faces = true;
-bool texture_transparent = false;
+bool texture_transparent = true;
 
 int main()
 {
@@ -78,6 +86,7 @@ int main()
     {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendEquation(GL_FUNC_ADD);
     }
 
     if (gamma_correct)
@@ -247,6 +256,8 @@ int main()
     lightingShader.setInt("shadowMap", 1);
 #endif
 
+
+
     // render loop
     // -----------
     while (window.IsOpen())
@@ -299,6 +310,7 @@ int main()
         {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glBlendEquation(GL_FUNC_ADD);
         }
         else
         {

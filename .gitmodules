@@ -7,3 +7,6 @@
 [submodule "ImGuiFileDialog"]
 	path = dependencies/ImGuiFileDialog
 	url = https://github.com/aiekick/ImGuiFileDialog
+[submodule "dependencies/cgltf"]
+	path = dependencies/cgltf
+	url = https://github.com/jkuhlmann/cgltf
