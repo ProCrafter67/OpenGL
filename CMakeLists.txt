@@ -43,7 +43,7 @@ file(COPY ${CMAKE_SOURCE_DIR}/assets
 add_subdirectory(dependencies/glfw)
 add_subdirectory(dependencies/glad)
 add_subdirectory(dependencies/stb)
-add_subdirectory(dependencies/tinyobjloader)
+add_subdirectory(dependencies/cgltf)
 add_subdirectory(dependencies/imgui)
 add_subdirectory(dependencies/ImGuiFileDialog)
 
@@ -53,7 +53,7 @@ target_include_directories(ImGuiFileDialog PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/d
 
 add_executable(${PROJECT_NAME} ${SRCS})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE imgui glfw stb glad OpenGL::GL tinyobjloader ImGuiFileDialog)
+target_link_libraries(${PROJECT_NAME} PRIVATE imgui glfw stb glad OpenGL::GL cgltf ImGuiFileDialog)
 
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glm")

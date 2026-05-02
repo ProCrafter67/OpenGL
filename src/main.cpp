@@ -6,6 +6,9 @@
 #include <ImGuiFileDialog.h>
 #include <vector>
 
+#define CGLTF_IMPLEMENTATION
+#include <cgltf.h>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
@@ -255,6 +258,18 @@ int main()
 #ifdef ENABLE_SHADOWS
     lightingShader.setInt("shadowMap", 1);
 #endif
+
+    cgltf_options options = {};
+    cgltf_data* data = nullptr;
+
+    cgltf_result result = cgltf_parse_file(
+        &options,
+        "assets/models/ak-47/scene.gltf",
+        &data);
+
+    if(result == cgltf_result_success) {
+        std::cout << "Failed to parse GLTF\n";
+    }
 
 
 
