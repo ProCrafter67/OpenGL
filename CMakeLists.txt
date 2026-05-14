@@ -45,7 +45,7 @@ add_subdirectory(dependencies/glad)
 add_subdirectory(dependencies/stb)
 add_subdirectory(dependencies/imgui)
 add_subdirectory(dependencies/ImGuiFileDialog)
-add_subdirectory(dependencies/fastgltf)
+add_subdirectory(dependencies/tinygltf)
 
 find_package(OpenGL REQUIRED)
 
@@ -53,7 +53,7 @@ target_include_directories(ImGuiFileDialog PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/d
 
 add_executable(${PROJECT_NAME} ${SRCS})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE imgui glfw stb glad OpenGL::GL ImGuiFileDialog fastgltf)
+target_link_libraries(${PROJECT_NAME} PRIVATE imgui glfw stb glad OpenGL::GL ImGuiFileDialog tinygltf)
 
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glm")

@@ -11,6 +11,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
+#include <tiny_gltf.h>
+
 #include "core/shader/shader.h"
 #include "core/util/camera.h"
 #include "core/util/window.h"
@@ -73,6 +75,7 @@ int main()
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_MULTISAMPLE);
     if (cull_back_faces)
     {
         glEnable(GL_CULL_FACE);
@@ -461,17 +464,10 @@ int main()
 #endif
 
         glBindVertexArray(cubeVAO);
-        for (int i = 0; i < 50; i++)
-        {
-            for (int j = 0; j < 50; j++)
-            {model = glm::mat4(1.0f);
-                model = glm::scale(model, glm::vec3(0.9f));
-                model = glm::translate(model, glm::vec3(i, y, j));
-                lightingShader.setMat4("model", model);
-                glDrawArrays(GL_TRIANGLES, 0, 36);
-            }
-            y++;
-        }
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f));
+        lightingShader.setMat4("model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // also draw the lamp object
         lightCubeShader.use();
