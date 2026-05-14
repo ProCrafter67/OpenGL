@@ -5,9 +5,8 @@
 #include <imgui_impl_opengl3.h>
 #include <ImGuiFileDialog.h>
 #include <vector>
-
-#define CGLTF_IMPLEMENTATION
-#include <cgltf.h>
+#include <math.h>
+#include <random>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
@@ -16,7 +15,9 @@
 #include "core/util/camera.h"
 #include "core/util/window.h"
 
-#define ENABLE_SHADOWS
+#include "core/functions/PerlinNoise.h"
+
+// #define ENABLE_SHADOWS
 
 class Vertex {
 public:
@@ -259,24 +260,14 @@ int main()
     lightingShader.setInt("shadowMap", 1);
 #endif
 
-    cgltf_options options = {};
-    cgltf_data* data = nullptr;
-
-    cgltf_result result = cgltf_parse_file(
-        &options,
-        "assets/models/ak-47/scene.gltf",
-        &data);
-
-    if(result == cgltf_result_success) {
-        std::cout << "Failed to parse GLTF\n";
-    }
-
-
+    const siv::PerlinNoise::seed_type seed = 12345u;
+    const siv::PerlinNoise perlin{seed};
 
     // render loop
     // -----------
     while (window.IsOpen())
     {
+        double y = 0.0f;
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -287,9 +278,9 @@ int main()
 
         // Display the light position sliders
         ImGui::Text("Adjust the light position:");
-        ImGui::SliderFloat("X", &lightPos.x, -5.0f, 5.0f);
-        ImGui::SliderFloat("Y", &lightPos.y, -5.0f, 5.0f);
-        ImGui::SliderFloat("Z", &lightPos.z, -5.0f, 5.0f);
+        ImGui::SliderFloat("X", &lightPos.x, -50.0f, 50.0f);
+        ImGui::SliderFloat("Y", &lightPos.y, -50.0f, 50.0f);
+        ImGui::SliderFloat("Z", &lightPos.z, -50.0f, 50.0f);
 
         ImGui::Separator();
 
@@ -412,19 +403,15 @@ int main()
         {
             for (int j = 0; j < 10; j++)
             {
+                const double noise = perlin.octave2D_01(i, j, 4);
+
                 glm::mat4 model = glm::mat4(1.0f);
-                model = glm::scale(model, glm::vec3(1.0f, 0.2f, 1.0f));
-                model = glm::translate(model, glm::vec3(i - 5.0f, 0.0f, j - 5.0f));
+                model = glm::translate(model, glm::vec3(i, floor((noise * 2) - 5), j));
                 depthShader.setMat4("model", model);
                 glBindVertexArray(cubeVAO);
                 glDrawArrays(GL_TRIANGLES, 0, 36);
             }
         }
-        // render cube
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 1.0f, 0.0f));
-        depthShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
         glCullFace(GL_BACK);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -469,7 +456,7 @@ int main()
 #endif
 
         // world transformation
-        model = glm::mat4(1.0f);
+        glm::mat4 model = glm::mat4(1.0f);
         lightingShader.setMat4("model", model);
 
         // render the floor
@@ -481,22 +468,17 @@ int main()
 #endif
 
         glBindVertexArray(cubeVAO);
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 50; i++)
         {
-            for (int j = 0; j < 10; j++)
-            {
-                model = glm::mat4(1.0f);
-                model = glm::scale(model, glm::vec3(1.0f, 0.2f, 1.0f)); // make the cubes smaller
-                model = glm::translate(model, glm::vec3(i - 5.0f, 0.0f, j - 5.0f));
+            for (int j = 0; j < 50; j++)
+            {model = glm::mat4(1.0f);
+                model = glm::scale(model, glm::vec3(0.9f));
+                model = glm::translate(model, glm::vec3(i, y, j));
                 lightingShader.setMat4("model", model);
                 glDrawArrays(GL_TRIANGLES, 0, 36);
             }
+            y++;
         }
-
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 1.0f, 0.0f)); // move the cube up so it's not intersecting with the floor
-        lightingShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // also draw the lamp object
         lightCubeShader.use();
@@ -504,7 +486,7 @@ int main()
         lightCubeShader.setMat4("view", view);
         model = glm::mat4(1.0f);
         model = glm::translate(model, lightPos);
-        model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+        model = glm::scale(model, glm::vec3(0.8f)); // a smaller cube
         lightCubeShader.setMat4("model", model);
 
         glBindVertexArray(lightCubeVAO);
@@ -513,8 +495,6 @@ int main()
         // Render ImGui on top of the scene
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
         window.Refresh();
     }
 
@@ -531,8 +511,7 @@ int main()
     return 0;
 }
 
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
+// process all input
 void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
