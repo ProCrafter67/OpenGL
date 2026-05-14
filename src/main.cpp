@@ -19,13 +19,6 @@
 
 // #define ENABLE_SHADOWS
 
-class Vertex {
-public:
-    glm::vec3 position;
-    glm::vec3 normal;
-    glm::vec2 TexCoord;
-};
-
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
@@ -534,15 +527,13 @@ void processInput(GLFWwindow *window)
     }
 }
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
+// Framebuffer Size Callback
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
 
-// glfw: whenever the mouse moves, this callback is called
-// -------------------------------------------------------
+// Mouse Callback
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
 {
     float xpos = static_cast<float>(xposIn);
@@ -581,7 +572,7 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
     ignoreNextMouseEvent = true;
     glfwSetCursorPos(window, lastX, lastY);
 }
-
+// Mouse Button Callback
 void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 {
     if (button == GLFW_MOUSE_BUTTON_RIGHT)
@@ -602,8 +593,7 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
     }
 }
 
-// glfw: whenever the mouse scroll wheel scrolls, this callback is called
-// ----------------------------------------------------------------------
+// Scroll Callback
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(static_cast<float>(yoffset));

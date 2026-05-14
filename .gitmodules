@@ -7,6 +7,3 @@
 [submodule "ImGuiFileDialog"]
 	path = dependencies/ImGuiFileDialog
 	url = https://github.com/aiekick/ImGuiFileDialog
-[submodule "dependencies/fastgltf"]
-	path = dependencies/fastgltf
-	url = https://github.com/spnda/fastgltf
