@@ -51,7 +51,8 @@ find_package(OpenGL REQUIRED)
 
 target_include_directories(ImGuiFileDialog PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/imgui")
 
-add_executable(${PROJECT_NAME} ${SRCS})
+add_executable(${PROJECT_NAME} ${SRCS}
+    src/core/util/first_person_controller.h)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE imgui glfw stb glad OpenGL::GL ImGuiFileDialog tinygltf)
 

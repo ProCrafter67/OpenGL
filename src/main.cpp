@@ -11,8 +11,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
-#include <tiny_gltf.h>
-
 #include "core/shader/shader.h"
 #include "core/util/camera.h"
 #include "core/util/window.h"
@@ -49,6 +47,8 @@ glm::vec3 lightPos(1.2f, 2.0f, 2.0f);
 bool gamma_correct = false;
 bool cull_back_faces = true;
 bool texture_transparent = true;
+bool fullscreen = false;
+int wait = 0;
 
 int main()
 {
@@ -223,41 +223,8 @@ int main()
 
     stbi_image_free(data);
 
-#ifdef ENABLE_SHADOWS
-    // Shadow map setup
-    const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
-    unsigned int depthMapFBO;
-    glGenFramebuffers(1, &depthMapFBO);
-    // create depth texture
-    unsigned int depthMap;
-    glGenTextures(1, &depthMap);
-    glBindTexture(GL_TEXTURE_2D, depthMap);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-    float borderColor[] = {1.0, 1.0, 1.0, 1.0};
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-    // attach depth texture as FBO's depth buffer
-    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "Framebuffer not complete!" << std::endl;
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-#endif
-
     lightingShader.use();
     lightingShader.setInt("material.diffuse", 0);
-#ifdef ENABLE_SHADOWS
-    lightingShader.setInt("shadowMap", 1);
-#endif
-
-    const siv::PerlinNoise::seed_type seed = 12345u;
-    const siv::PerlinNoise perlin{seed};
 
     // render loop
     // -----------
@@ -327,6 +294,7 @@ int main()
         {
             IGFD::FileDialogConfig config;
             config.path = ".";
+            // trying to set width and height
             ImGuiFileDialog::Instance()->OpenDialog("ChooseFileKey", "Choose File", ".png,.jpg,.jpeg", config);
         }
 
@@ -377,41 +345,6 @@ int main()
         // -----
         processInput(window.GetWindow());
 
-#ifdef ENABLE_SHADOWS
-        // 1. render depth of scene to texture (from light's perspective)
-        // --------------------------------------------------------------
-        glm::mat4 lightProjection, lightView;
-        glm::mat4 lightSpaceMatrix;
-        float near_plane = 0.1f, far_plane = 10.0f;
-        lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-        lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-        lightSpaceMatrix = lightProjection * lightView;
-        // render scene from light's point of view
-        depthShader.use();
-        depthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-
-        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-        glClear(GL_DEPTH_BUFFER_BIT);
-        glCullFace(GL_FRONT);
-        // render floor
-        for (int i = 0; i < 10; i++)
-        {
-            for (int j = 0; j < 10; j++)
-            {
-                const double noise = perlin.octave2D_01(i, j, 4);
-
-                glm::mat4 model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(i, floor((noise * 2) - 5), j));
-                depthShader.setMat4("model", model);
-                glBindVertexArray(cubeVAO);
-                glDrawArrays(GL_TRIANGLES, 0, 36);
-            }
-        }
-        glCullFace(GL_BACK);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-#endif
         // Set the viewport to the size of the framebuffer
         int display_w, display_h;
         glfwGetFramebufferSize(window.GetWindow(), &display_w, &display_h);
@@ -447,9 +380,6 @@ int main()
         glm::mat4 view = camera.GetViewMatrix();
         lightingShader.setMat4("projection", projection);
         lightingShader.setMat4("view", view);
-#ifdef ENABLE_SHADOWS
-        lightingShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-#endif
 
         // world transformation
         glm::mat4 model = glm::mat4(1.0f);
@@ -458,10 +388,6 @@ int main()
         // render the floor
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
-#ifdef ENABLE_SHADOWS
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, depthMap);
-#endif
 
         glBindVertexArray(cubeVAO);
         model = glm::mat4(1.0f);
@@ -503,11 +429,25 @@ int main()
 // process all input
 void processInput(GLFWwindow *window)
 {
+    if (wait > 0)
+        wait--;
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-
-    if (rightMousePressed)
-    {
+    if (glfwGetKey(window, GLFW_KEY_F11) == GLFW_PRESS) {
+        if ((!fullscreen) && (wait == 0)) {
+            fullscreen = true;
+            GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+            glfwSetWindowMonitor(window, monitor, 0, 0, 1920, 1080, 60);
+            wait = 100;
+        } else {
+            if (wait == 0) {
+                fullscreen = false;
+                glfwSetWindowMonitor(window, NULL, 100, 100, 800, 600, GLFW_DONT_CARE);
+                wait = 100;
+            }
+        }
+    }
+    if (rightMousePressed) {
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
             camera.ProcessKeyboard(FORWARD, deltaTime);
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
